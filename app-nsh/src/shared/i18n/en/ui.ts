@@ -342,4 +342,29 @@ export const ui: Record<string, string> = {
   '安装包里不是 v{version}': 'The package does not hold v{version}',
   还没有下载好的更新: 'No update has been downloaded yet',
   '替换 {path} 失败：{error}': 'Replacing {path} failed: {error}',
+
+  // Cleanup of finished worktrees
+  '{pr} 已合并': '{pr} merged',
+  '{pr} 还开着': '{pr} is still open',
+  '已并入 {base}': 'Already in {base}',
+  '{pr} 关闭了，没有合并': '{pr} was closed without merging',
+  '没能检查 PR': 'Could not check the PR',
+  '没有 PR': 'No PR',
+  '清理已完成的 worktree…': 'Clean Up Finished Worktrees…',
+  '清理已完成的 worktree': 'Clean up finished worktrees',
+  'PR 已合并或已并入主干、本机没有多余改动的分支已经勾上。勾上被拦住的分支，会连它那些只在本机的提交和改动一起删掉。':
+    'Branches whose PR is merged or whose commits are already in the base, with nothing left only here, are checked. Checking a held branch deletes the commits and changes that exist only on this machine along with it.',
+  '正在逐个检查 worktree 的 PR 和本地改动…': "Checking each worktree's PR and local changes…",
+  '没有可清理的 worktree': 'No worktrees to clean up',
+  '除当前检出外，没有 TeaBranch 建的 worktree。': 'Apart from the current checkout, there are no worktrees TeaBranch created.',
+  '检查失败：{error}': 'Check failed: {error}',
+  '已选 {n} 个，会删除 worktree 目录和本地分支': '{n} selected; each worktree directory and local branch will be deleted',
+  '清理 {n} 个': 'Clean up {n}',
+  已清理: 'Cleaned up',
+  清理完成: 'Cleanup finished',
+  '{n} 个没清理成功': '{n} could not be cleaned up',
+  '清理 worktree 和分支…': 'Clean Up Worktree and Branch…',
+  '清理 {key} 的 worktree？': 'Clean up the worktree of {key}?',
+  '会停止 agent，删除 worktree 目录和本地分支 {branch}。没推送的提交和没提交的改动会丢失，无法撤销。':
+    'This stops the agent and deletes the worktree directory and the local branch {branch}. Unpushed commits and uncommitted changes are lost; it cannot be undone.',
 }

@@ -4,6 +4,7 @@ import { isApproved } from '../../../shared/issues'
 import type { Issue, IssueRun } from '../../../shared/types'
 import { isActivePhase, triageLabel } from '../../../shared/types'
 import { Icon, type IconName } from '../../components/Icon'
+import { confirmDialog } from '../../components/confirm'
 import { Button, IconButton, MenuButton, TitleStrip, Toggle } from '../../components/kit'
 import { Markdown } from '../../components/Markdown'
 import { AgentAvatar, PeopleStack, PersonAvatar } from '../../components/person'
@@ -294,6 +295,12 @@ function Header(props: { issue: Issue; run?: IssueRun; busy: boolean; panel: boo
               ? [
                   { label: t('复制会话恢复命令'), onSelect: () => void Clipboard.writeText(`claude --resume ${props.run?.sessionId}`) },
                   'separator' as const,
+                  {
+                    label: t('清理 worktree 和分支…'),
+                    danger: true,
+                    disabled: props.busy,
+                    onSelect: () => perform(() => cleanupWorktree(props.issue, props.run as IssueRun)),
+                  },
                   { label: t('重置会话记录'), danger: true, disabled: props.busy, onSelect: () => perform(() => api.resetIssue(props.issue.id)) },
                 ]
               : []),
@@ -568,4 +575,13 @@ function IssueCard(props: { issue: Issue; startOpen: boolean }) {
       </If>
     </View>
   )
+}
+
+/** The issue is done with its worktree: asked once, since unpushed work goes with it. */
+async function cleanupWorktree(issue: Issue, run: IssueRun): Promise<void> {
+  const ok = await confirmDialog(
+    t('会停止 agent，删除 worktree 目录和本地分支 {branch}。没推送的提交和没提交的改动会丢失，无法撤销。', { branch: run.branch }),
+    t('清理 {key} 的 worktree？', { key: issue.key }),
+  )
+  if (ok) await api.cleanupIssue(issue.id)
 }

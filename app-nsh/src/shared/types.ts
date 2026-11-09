@@ -1,3 +1,4 @@
+import type { CleanupCandidate } from './cleanup'
 import { type LanguagePref, type Locale, t } from './i18n'
 // Types shared by the main process and the renderer. Everything here crosses IPC, so it is
 // plain data: no classes, no functions, no Dates (timestamps are epoch milliseconds).
@@ -811,6 +812,10 @@ export interface Api {
   stopBranch(branch: string): Promise<void>
   restartBranch(branch: string): Promise<void>
   deleteBranch(branch: string): Promise<void>
+  /** Every managed worktree but the checkout's own, with where its work stands: what the cleanup window lists. */
+  surveyCleanup(): Promise<CleanupCandidate[]>
+  /** The branch's worktree and local branch, gone — through its issue's own cleanup when it has one. */
+  cleanupBranch(branch: string): Promise<void>
   createWorktree(branch: string, dbMode: DbMode): Promise<void>
   worktreeDbInfo(): Promise<WorktreeDbInfo[]>
   openTerminal(branch: string): Promise<void>

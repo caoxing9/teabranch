@@ -36,7 +36,7 @@ import * as teable from './services/teable'
 import * as teableAuth from './services/teableAuth'
 import * as terminal from './services/terminal'
 import * as worktrees from './services/worktree'
-import { removeWorktree } from './services/worktreeCleanup'
+import { removeWorktree, survey } from './services/worktreeCleanup'
 import * as browser from './services/browser'
 import { updater } from './services/updater'
 
@@ -118,11 +118,26 @@ const handlers: Api = {
   startBranch: (branch) => processManager.start(branch),
   stopBranch: (branch) => processManager.stop(branch),
   restartBranch: (branch) =>
-    processManager.withBranchLock(branch, async () => {
-      await processManager.stop(branch)
-      await processManager.start(branch)
+    processManager.withBranchLock(branch, async (held) => {
+      await processManager.stop(branch, held)
+      await processManager.start(branch, held)
     }),
   deleteBranch: async (branch) => removeWorktree(branch, requireRepo()),
+  surveyCleanup: async () => {
+    const runs = Object.values(issueAgent.allRuns())
+    return survey(
+      requireRepo(),
+      (branch) => runs.find((run) => run.branch === branch),
+      (recordId) => issueAgent.isBusy(recordId),
+    )
+  },
+  cleanupBranch: async (branch) => {
+    const repo = requireRepo()
+    const run = Object.values(issueAgent.allRuns()).find((candidate) => candidate.branch === branch)
+    // An issue's branch goes through the issue: its conversation gets the note, its shelf becomes done.
+    if (run && issueAgent.worktreePath(run)) await issueAgent.cleanup(run.recordId, true)
+    else await removeWorktree(branch, repo, { deleteBranch: true })
+  },
   createWorktree: async (branch, dbMode) => {
     const repo = requireRepo()
     await processManager.withBranchLock(branch, () => worktrees.create(branch, repo, dbMode, (progress) => emit('worktreeProgress', { branch, progress })))

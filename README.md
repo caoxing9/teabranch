@@ -51,6 +51,7 @@ The window has three sections: **Issues** (⌘2), **Branches** (⌘1) and **Auto
 - One-click creation (⌘N). It makes the worktree, generates an isolated `.env.development.local`, installs dependencies, provisions the database and runs migrations.
 - Ports are allocated in blocks. Deleted worktrees' gaps are reused, and the allocator skips ports that predictably belong to something else (Postgres, Redis, macOS AirPlay's 5000 and 7000).
 - A database can be created fresh, cloned from another worktree, or shared with one. By default new worktrees share the main checkout's database, which is what a branch cut from `develop` usually wants, and it skips the slowest steps.
+- **Clean up finished worktrees** (the bin beside **+**) lists every worktree with where its work stands — PR merged, commits already in the base, or neither — and what deleting it would lose: unpushed commits, uncommitted files, an agent still running. Finished branches with nothing to lose come pre-checked; one click removes their worktrees and local branches. An issue's worktree can also be cleaned from the issue's **…** menu.
 
 **Running them**
 

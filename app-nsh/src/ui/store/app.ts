@@ -33,6 +33,7 @@ interface AppState {
   error: string | null
   theme: Theme
   showCreate: boolean
+  showCleanup: boolean
   showSettings: boolean
   pendingDelete: string | null
   /** The settings page open, or to open next. */
@@ -65,6 +66,7 @@ const fields = createStore<AppState>({
   error: null,
   theme: pref<Theme>('teabranch.theme', 'system'),
   showCreate: false,
+  showCleanup: false,
   showSettings: false,
   pendingDelete: null,
   settingsPage: pref<SettingsPage>('teabranch.settingsPage', 'appearance'),

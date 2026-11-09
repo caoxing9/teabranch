@@ -58,6 +58,9 @@ export function BranchSidebar() {
           <IconButton label={t('新建分支 (⌘N)')} onPress={() => app.set({ showCreate: true })}>
             <Icon name="plus" size={16} tint="fg-2" />
           </IconButton>
+          <IconButton label={t('清理已完成的 worktree…')} onPress={() => app.set({ showCleanup: true })}>
+            <Icon name="trash-2" size={16} tint="fg-2" />
+          </IconButton>
         </View>
       </View>
       <Scroll class="min-h-0 flex-1" contentClass="px-2 pb-2">
@@ -147,6 +150,7 @@ function appMenu(): MenuEntry[] {
       ],
     },
     'separator',
+    { label: t('清理已完成的 worktree…'), onSelect: () => app.set({ showCleanup: true }) },
     { label: t('打开仓库…'), onSelect: () => void app.chooseProject() },
     { label: t('设置…'), onSelect: () => app.openSettings() },
   ]

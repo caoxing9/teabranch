@@ -56,6 +56,7 @@ Teable 是个很大的全栈项目，切一次分支就得把所有东西重启�
 - 一键创建（⌘N）：建 worktree、生成独立的 `.env.development.local`、装依赖、准备数据库、跑 migration。
 - 端口按块分配。删掉的 worktree 空出来的端口块会被复用。分配时会跳过注定被别的程序占用的端口，比如 Postgres、Redis，以及 macOS AirPlay 用的 5000 和 7000。
 - 数据库可以新建、从别的 worktree 克隆，或者直接共享。新 worktree 默认共享主仓库的数据库。从 `develop` 切出来的分支一般都是这么用的，而且能跳过最慢的几步。
+- **清理已完成的 worktree**（搜索框旁的垃圾桶）列出每个 worktree 的去向——PR 已合并、提交已并入主干，或者都没有——以及删掉会丢什么：没推送的提交、没提交的文件、还在跑的 agent。已完成且没什么可丢的分支默认勾上，一键删掉 worktree 和本地分支。issue 的 worktree 也可以在 issue 的 **…** 菜单里清理。
 
 **运行**
 

@@ -9,6 +9,7 @@ import { AutopilotSidebar } from './features/autopilot/AutopilotSidebar'
 import { BranchDetail } from './features/branches/BranchDetail'
 import { BranchSidebar } from './features/branches/BranchSidebar'
 import { CreateWorktreeDialog } from './features/branches/CreateWorktreeDialog'
+import { CleanupDialog } from './features/branches/CleanupDialog'
 import { DeleteDialog } from './features/branches/DeleteDialog'
 import { BrowserHost } from './features/issues/browserHost'
 import { IssueSidebar } from './features/issues/IssueSidebar'
@@ -104,6 +105,9 @@ function Dialogs() {
         <UpdateDialog />
       </If>
       <If when={app.pendingDelete()}>{(branch) => <DeleteDialog branch={branch()} />}</If>
+      <If when={app.showCleanup()}>
+        <CleanupDialog />
+      </If>
     </>
   )
 }
