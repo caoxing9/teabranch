@@ -1,3 +1,10 @@
+# [0.20.0](https://github.com/caoxing9/teabranch/compare/v0.19.0...v0.20.0) (2026-11-09)
+
+
+### Features
+
+* clean up finished worktrees in one go; fix the branch lock deadlock ([#19](https://github.com/caoxing9/teabranch/issues/19)) ([6d05b26](https://github.com/caoxing9/teabranch/commit/6d05b2633e57faf2a571ac033a1334c80fafdb8e)), closes [#12](https://github.com/caoxing9/teabranch/issues/12) [#12](https://github.com/caoxing9/teabranch/issues/12)
+
 # [0.19.0](https://github.com/caoxing9/teabranch/compare/v0.18.0...v0.19.0) (2026-11-09)
 
 
