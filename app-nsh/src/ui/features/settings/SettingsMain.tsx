@@ -4,14 +4,17 @@ import { t } from '../../../shared/i18n'
 import type { AgentAccess, ModelScene, ReviewEngine } from '../../../shared/types'
 import { agentAccessModes, modelScenes } from '../../../shared/types'
 import { applyLocale } from '../../../core/locale'
-import { Button, Segmented, TextInput } from '../../components/kit'
+import { Icon } from '../../components/Icon'
+import { Button, Segmented, Spinner, TextInput } from '../../components/kit'
 import { api } from '../../lib/api'
 import { type SettingsPage, type Theme, app } from '../../store/app'
 import { issues } from '../../store/issues'
+import { updates } from '../../store/updates'
 import { Card, Choice, NumberInput, PageBody, PageHeader, Row } from '../autopilot/parts'
 import { ModelPicker } from '../issues/AgentPickers'
 import { NONE, SavedInput } from './fields'
 import { IssueFixPage, IssuePromptPage, IssueReviewPage, IssueTeablePage } from './IssuePages'
+import { downloading } from './UpdateDialog'
 
 /** The settings, a page per entry of the rail: the app's own, the models' rules, the Issue auto-fix. */
 export function SettingsMain() {
@@ -23,6 +26,7 @@ export function SettingsMain() {
           appearance: () => <AppearancePage />,
           repo: () => <RepoPage />,
           terminal: () => <TerminalPage />,
+          about: () => <AboutPage />,
           models: () => <ModelsPage />,
           issueTeable: () => <IssueTeablePage />,
           issueFix: () => <IssueFixPage />,
@@ -47,7 +51,7 @@ async function changeLanguage(language: LanguagePref) {
 function AppearancePage() {
   return (
     <>
-      <PageHeader title={t('外观')} />
+      <PageHeader compact title={t('外观')} />
       <PageBody>
         <Card>
           <Row label={t('主题')}>
@@ -80,11 +84,72 @@ function AppearancePage() {
   )
 }
 
+/** The version, and the update that may be waiting: the checks run by themselves, this is where to ask for one. */
+function AboutPage() {
+  const state = () => updates.state()
+  const busy = () => state().status === 'checking' || state().status === 'downloading' || state().status === 'installing'
+  const standing = (): string => {
+    const current = state()
+    switch (current.status) {
+      case 'checking':
+        return t('正在检查…')
+      case 'downloading':
+        return downloading(current)
+      case 'installing':
+        return t('正在重启…')
+      case 'ready':
+        return t('v{version} 已下载好，重启即可更新', { version: current.latest?.version ?? '' })
+      case 'none':
+        return t('已是最新版本')
+      case 'failed':
+        return current.error ?? t('检查失败')
+      default:
+        return current.bundle ? t('启动后和每隔几小时自动检查一次') : t('开发版不会自动检查')
+    }
+  }
+  const checkedAt = (): string | undefined => {
+    const at = state().checkedAt
+    if (!at) return undefined
+    const date = new Date(at)
+    return t('检查于 {time}', { time: `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}` })
+  }
+  const showable = () => {
+    const current = state()
+    return current.status === 'ready' || current.status === 'downloading' || (current.status === 'failed' && !!current.latest)
+  }
+  return (
+    <>
+      <PageHeader compact title={t('关于')} />
+      <PageBody>
+        <Card>
+          <Row label="TeaBranch" hint={state().current === 'dev' ? t('开发版') : t('版本 {version}', { version: state().current })}>
+            <Button
+              icon={busy() ? <Spinner size={12} /> : <Icon name="refresh-cw" size={13} tint="fg" />}
+              disabled={busy()}
+              onPress={() => void updates.check()}
+            >
+              {t('检查更新')}
+            </Button>
+          </Row>
+          <Row label={standing()} hint={checkedAt()}>
+            <If when={showable()}>
+              <Button tone="accent" onPress={() => updates.open()}>
+                {t('查看')}
+              </Button>
+            </If>
+          </Row>
+        </Card>
+        <Text class="px-1 text-[11.5px] text-fg-3">{t('用 Homebrew 装的也从这里更新就行；命令行则是 brew update && brew upgrade --cask teabranch。')}</Text>
+      </PageBody>
+    </>
+  )
+}
+
 function RepoPage() {
   const settings = () => app.settings()
   return (
     <>
-      <PageHeader title={t('仓库')} />
+      <PageHeader compact title={t('仓库')} />
       <PageBody>
         <Card>
           <Row
@@ -120,7 +185,7 @@ function TerminalPage() {
   const selection = () => chosen() ?? (presets()?.length ? (isPreset() ? terminal() || systemTerminal : custom) : '')
   return (
     <>
-      <PageHeader title={t('终端')} subtitle={t('Otty 能直接在新标签里运行命令，也能告诉我们哪些 worktree 已经开着终端。')} />
+      <PageHeader compact title={t('终端')} subtitle={t('Otty 能直接在新标签里运行命令，也能告诉我们哪些 worktree 已经开着终端。')} />
       <PageBody>
         <Card>
           <Row label={t('终端应用')}>
@@ -192,7 +257,7 @@ function ModelsPage() {
   )
   return (
     <>
-      <PageHeader title={t('模型')} subtitle={t('像代理规则：有规则的场景用自己的模型，其余都走兜底。单个 issue 或对话里选的模型优先。')} />
+      <PageHeader compact title={t('模型')} subtitle={t('像代理规则：有规则的场景用自己的模型，其余都走兜底。单个 issue 或对话里选的模型优先。')} />
       <PageBody>
         <Card title={t('兜底')}>
           <Row label={t('默认模型')} hint={t('没有单独规则的场景都用它')}>

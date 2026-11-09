@@ -56,6 +56,33 @@ export interface AppSettings {
   models?: ModelRules
 }
 
+/** Where the app stands against the latest release. */
+export type UpdateStatus = 'idle' | 'checking' | 'none' | 'downloading' | 'ready' | 'installing' | 'failed'
+
+export interface UpdateRelease {
+  version: string
+  /** The DMG. */
+  url: string
+  sha256: string
+  /** The changelog since the running version, markdown. */
+  notes: string
+}
+
+export interface UpdateState {
+  /** The running version; `dev` when this isn't a packaged build. */
+  current: string
+  /** The running .app when it is TeaBranch's own bundle: what an update replaces. */
+  bundle?: string
+  status: UpdateStatus
+  latest?: UpdateRelease
+  /** The new app, unpacked and verified. */
+  staged?: string
+  /** Of the download, 0–1, when the server said how big it is. */
+  progress?: number
+  error?: string
+  checkedAt?: number
+}
+
 export interface NgrokTunnel {
   branchName: string
   port: number
@@ -908,6 +935,13 @@ export interface Api {
   setMagpieKey(key: string): Promise<void>
   openExternal(url: string): Promise<void>
 
+  // Updates
+  updateState(): Promise<UpdateState>
+  /** Compare with the latest release; a newer one is downloaded and unpacked, ready to restart into. */
+  checkUpdate(): Promise<UpdateState>
+  /** Put the unpacked app in the running one's place and restart. */
+  installUpdate(): Promise<void>
+
   // Autopilot
   autopilotConfig(): Promise<AutopilotConfig>
   updateAutopilotConfig(patch: Partial<AutopilotConfig>): Promise<AutopilotConfig>
@@ -1005,7 +1039,8 @@ export interface Events {
   autopilotActivity: ActivityItem
   /** A probe was filed as an issue: everything under its old id now lives under the record's. */
   issueRekeyed: { from: string; to: string }
-  menu: 'newBranch' | 'settings' | 'showBranches' | 'showIssues' | 'toggleTerminal' | 'newTerminal' | 'autopilot'
+  updateState: UpdateState
+  menu: 'newBranch' | 'settings' | 'checkUpdate' | 'showBranches' | 'showIssues' | 'toggleTerminal' | 'newTerminal' | 'autopilot'
 }
 
 export type EventName = keyof Events

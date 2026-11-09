@@ -13,6 +13,7 @@ import * as ptyHost from './services/ptyHost'
 import { cleanupAll, startReconcileLoop } from './services/processManager'
 import { startBrowserBridge } from './services/browserBridge'
 import * as autopilot from './services/autopilot'
+import { updater } from './services/updater'
 
 /**
  * The app's life: what Electron's main process did at `whenReady` and `before-quit`, now called
@@ -39,6 +40,7 @@ function buildMenu(): void {
         { role: 'about', label: t('关于 TeaBranch') },
         { type: 'separator' },
         { label: t('设置…'), shortcut: 'cmd+,', onSelect: () => sendMenu('settings') },
+        { label: t('检查更新…'), onSelect: () => sendMenu('checkUpdate') },
         { type: 'separator' },
         { role: 'hide', label: t('隐藏 TeaBranch') },
         { role: 'hideOthers', label: t('隐藏其他') },
@@ -106,6 +108,8 @@ export async function boot(): Promise<void> {
   buildMenu()
   startReconcileLoop()
   void autopilot.apply()
+  updater.setBeforeRestart(shutdown)
+  void updater.start()
   log.info('ready')
 }
 

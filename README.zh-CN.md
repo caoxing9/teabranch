@@ -16,7 +16,7 @@ TeaBranch 是一个 macOS app，用来并行开发 [Teable](https://github.com/t
 
 Teable 是个很大的全栈项目，切一次分支就得把所有东西重启一遍。TeaBranch 让每个分支常驻在自己的 worktree 里，切换只要点一下，什么都不用重启。分支既然能同时跑好几个，修 issue 也就能并行：每个 issue 一个以 issue ID 命名的 worktree，有自己的 agent 对话和终端。
 
-窗口分三块：**Issues**（⌘2）、**分支**（⌘1）和**托管**（⌘3）。界面支持中文和英文，默认跟随系统语言；语言和浅色 / 深色外观都在设置里切换：分节切换器旁边的齿轮（或 ⌘,）会把设置作为窗口的一节打开，自带侧栏——外观、仓库、终端、模型、Issue 自动修复的几页，以及通往托管各页的入口。
+窗口分三块：**Issues**（⌘2）、**分支**（⌘1）和**托管**（⌘3）。界面支持中文和英文，默认跟随系统语言；语言和浅色 / 深色外观都在设置里切换：分节切换器旁边的齿轮（或 ⌘,）打开设置窗口，左边一列是各页——外观、仓库、终端、模型、Issue 自动修复的几页，以及通往托管各页的入口。
 
 ## Issues：agent 自动修复
 
@@ -86,7 +86,13 @@ brew trust --cask caoxing9/teabranch/teabranch
 brew install --cask teabranch
 ```
 
-升级用 `brew upgrade --cask teabranch`。cask 就放在这个仓库里，所以 tap 时要带上仓库地址。
+TeaBranch 自己会检查新版本：启动后不久查一次，之后每隔几小时查一次；有新版本就在后台下载好，然后弹出自上个版本以来的更新内容，点"重启以更新"即可（设置 → 关于 里有"检查更新"按钮，应用菜单里也有"检查更新…"）。这样更新过的 app 不用再走 Homebrew，Homebrew 的升级也照样能用在它上面。
+
+用 Homebrew 升级：`brew update && brew upgrade --cask teabranch`。cask 就放在这个仓库里，所以 tap 时要带上仓库地址。前面那个 `brew update` 不能省：单独的 `brew upgrade` 一天最多刷新一次 tap（Homebrew 的 `HOMEBREW_AUTO_UPDATE_SECS`，默认 24 小时），这期间发的新版本它看不见。只想拉这个 tap、不拉全部：
+
+```bash
+git -C "$(brew --repo caoxing9/teabranch)" pull -q && HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade --cask teabranch
+```
 
 安装包是 ad-hoc 签名，没有经过公证。cask 会在 `postflight` 里去掉隔离属性，所以第一次打开时不用右键 → 打开。代价是 Gatekeeper 不会在你的机器上检查这个 app。以后用付费的 Developer ID 做公证，就不需要这一步了。
 
@@ -97,6 +103,16 @@ brew install --cask teabranch
 ```bash
 xattr -d com.apple.quarantine /Applications/TeaBranch.app
 ```
+
+### 从本地代码安装
+
+装好下面的构建工具后，一条脚本就能把工作区打包成 app 放进「应用程序」，替换掉原来的那份（会先请正在运行的那份退出，数据不动）：
+
+```bash
+app-nsh/scripts/install-local.sh
+```
+
+本机打出来的 app 不带隔离属性，没有「仍要打开」，也不用等发布。
 
 ## 从源码构建
 
@@ -143,7 +159,7 @@ nsh package --target macos      # → .nsh/out/TeaBranch.app
 
 ## 配置
 
-所有数据都放在 `~/Library/Application Support/com.teabranch.dev/`。这和早期版本用的是同一个目录，所以老用户升级后状态都还在。设置都在 app 里改：分节切换器旁边的齿轮（⌘,）打开设置，一个侧栏里有 app 本身的几页、**模型**（像代理规则：修复、验证、review、对话、Router 各场景可以指定模型，其余走兜底）和 Issue 自动修复的几页；托管的设置在**托管**各页里，设置侧栏里有入口。
+所有数据都放在 `~/Library/Application Support/com.teabranch.dev/`。这和早期版本用的是同一个目录，所以老用户升级后状态都还在。设置都在 app 里改：分节切换器旁边的齿轮（⌘,）打开设置窗口，左边一列里有 app 本身的几页、**模型**（像代理规则：修复、验证、review、对话、Router 各场景可以指定模型，其余走兜底）和 Issue 自动修复的几页；托管的设置在**托管**各页里，设置侧栏里有入口。
 
 | 文件 | 内容 |
 |------|------|

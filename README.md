@@ -16,7 +16,7 @@ A macOS app for working on [Teable](https://github.com/teableio/teable) in paral
 
 Teable is a large full-stack project, and switching branches means restarting everything. TeaBranch keeps each branch checked out in its own worktree, so switching is a click and nothing has to restart. With several branches running side by side, issue fixing parallelises as well: each issue gets a worktree named after its ID, with its own agent conversation and its own terminal.
 
-The window has three sections: **Issues** (⌘2), **Branches** (⌘1) and **Autopilot** (⌘3). The interface is in English or Chinese. It follows macOS by default, and you can switch it, along with the light or dark look, in Settings: the gear beside the section switcher (or ⌘,) opens them as a section of the window with a sidebar of their own — appearance, repository, terminal, models, the Issue auto-fix pages, and the way on to the Autopilot pages.
+The window has three sections: **Issues** (⌘2), **Branches** (⌘1) and **Autopilot** (⌘3). The interface is in English or Chinese. It follows macOS by default, and you can switch it, along with the light or dark look, in Settings: the gear beside the section switcher (or ⌘,) opens a settings window with the pages down its left side — appearance, repository, terminal, models, the Issue auto-fix pages, and the way on to the Autopilot pages.
 
 ## Issues: agent-driven fixing
 
@@ -81,7 +81,13 @@ brew trust --cask caoxing9/teabranch/teabranch
 brew install --cask teabranch
 ```
 
-Upgrade with `brew upgrade --cask teabranch`. The tap is added by URL because the cask lives in this repository.
+TeaBranch checks for new releases by itself — shortly after launch and every few hours — downloads the next one in the background and then offers to restart into it, with the changelog since the version you run (Settings → About has a "Check for updates" button and the app menu a "Check for Updates…" item). A copy that updated itself this way needs no Homebrew step, and Homebrew's own upgrade keeps working on it.
+
+Upgrade with Homebrew: `brew update && brew upgrade --cask teabranch`. The tap is added by URL because the cask lives in this repository. The explicit `brew update` matters: on its own, `brew upgrade` refreshes the taps at most once a day (Homebrew's `HOMEBREW_AUTO_UPDATE_SECS`, 24 hours by default), so a release made since then stays invisible to it. To fetch only this tap instead of all of them:
+
+```bash
+git -C "$(brew --repo caoxing9/teabranch)" pull -q && HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade --cask teabranch
+```
 
 The build is ad-hoc signed and not notarized. The cask strips the quarantine attribute in a `postflight`, so the app launches without right-click → Open. As a result, Gatekeeper doesn't vet it on your machine. Notarizing with a paid Developer ID would remove the need for that.
 
@@ -92,6 +98,16 @@ Download `TeaBranch-<version>-arm64.dmg` from [Releases](https://github.com/caox
 ```bash
 xattr -d com.apple.quarantine /Applications/TeaBranch.app
 ```
+
+### From this checkout
+
+With the build tools below installed, one script packages the app from the working tree and puts it in `/Applications`, replacing the copy there (the running one is asked to quit first; its data stays):
+
+```bash
+app-nsh/scripts/install-local.sh
+```
+
+A build made on your own Mac is never quarantined, so there is no "open anyway" and nothing to wait for.
 
 ## Build from source
 
@@ -134,7 +150,7 @@ Ports come from a "slot" that fixes the whole block (`3000 + slot*100`). Slot as
 
 ## Configuration
 
-Everything lives in `~/Library/Application Support/com.teabranch.dev/`. That's the same directory the earlier builds used, so an existing install keeps its state. Settings are edited in the app: the gear beside the section switcher (⌘,) opens them, with the app's own pages, **Models** (a model per scene — fixing, checking, review, chats, the router — and a fallback for the rest, like a proxy's rules) and the Issue auto-fix pages in one sidebar; autopilot's settings stay on its own pages, linked from there.
+Everything lives in `~/Library/Application Support/com.teabranch.dev/`. That's the same directory the earlier builds used, so an existing install keeps its state. Settings are edited in the app: the gear beside the section switcher (⌘,) opens the settings window, with the app's own pages, **Models** (a model per scene — fixing, checking, review, chats, the router — and a fallback for the rest, like a proxy's rules) and the Issue auto-fix pages in one sidebar; autopilot's settings stay on its own pages, linked from there.
 
 | File | Holds |
 |------|-------|

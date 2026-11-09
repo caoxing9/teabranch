@@ -6,9 +6,9 @@ import { api, messageOf, on } from '../lib/api'
 import { pref, setPref } from '../prefs'
 import { createStore } from './base'
 
-export type Section = 'branches' | 'issues' | 'queue' | 'autopilot' | 'settings'
-/** The settings' pages, as the settings sidebar lists them. */
-export type SettingsPage = 'appearance' | 'repo' | 'terminal' | 'models' | 'issueTeable' | 'issueFix' | 'issueReview' | 'issuePrompt'
+export type Section = 'branches' | 'issues' | 'queue' | 'autopilot'
+/** The settings' pages, as the settings window's sidebar lists them. */
+export type SettingsPage = 'appearance' | 'repo' | 'terminal' | 'about' | 'models' | 'issueTeable' | 'issueFix' | 'issueReview' | 'issuePrompt'
 export type Theme = 'system' | 'light' | 'dark'
 export type SortKey = 'name' | 'status' | 'category'
 
@@ -33,11 +33,10 @@ interface AppState {
   error: string | null
   theme: Theme
   showCreate: boolean
+  showSettings: boolean
   pendingDelete: string | null
   /** The settings page open, or to open next. */
   settingsPage: SettingsPage
-  /** Where you were before the settings: the gear takes you back there. */
-  lastSection: Section
   /** Most recently started first — what the "running" ordering leans on. */
   recency: string[]
   /** Worktrees being created, by branch → the step it is on. Creation takes minutes; it runs in
@@ -50,9 +49,8 @@ interface AppState {
 const fields = createStore<AppState>({
   ready: false,
   settings: null,
-  // The queue was a section of its own before it became autopilot's workers. The settings never
-  // open at launch.
-  section: ((section) => (section === 'queue' ? 'autopilot' : section === 'settings' ? 'issues' : section))(pref<Section>('teabranch.section', 'issues')),
+  // The queue was a section of its own before it became autopilot's workers.
+  section: ((section) => (section === 'queue' ? 'autopilot' : section))(pref<Section>('teabranch.section', 'issues')),
   branches: [],
   categories: {},
   selectedBranch: null,
@@ -67,9 +65,9 @@ const fields = createStore<AppState>({
   error: null,
   theme: pref<Theme>('teabranch.theme', 'system'),
   showCreate: false,
+  showSettings: false,
   pendingDelete: null,
   settingsPage: pref<SettingsPage>('teabranch.settingsPage', 'appearance'),
-  lastSection: 'issues',
   recency: [],
   creating: {},
   epoch: 0,
@@ -146,23 +144,22 @@ export const app = {
 
   /** `set` that remembers the section. */
   go(patch: Partial<AppState>): void {
-    if (patch.section && patch.section !== 'settings') setPref('teabranch.section', patch.section)
+    if (patch.section) setPref('teabranch.section', patch.section)
     fields.set(patch)
   },
 
-  /** The settings, at `page` when given, else where they were left. */
+  /** The settings window, at `page` when given, else where it was left. */
   openSettings(page?: SettingsPage): void {
-    const section = fields.section()
     if (page) {
       setPref('teabranch.settingsPage', page)
       fields.set({ settingsPage: page })
     }
-    if (section !== 'settings') fields.set({ lastSection: section, section: 'settings' })
+    fields.set({ showSettings: true })
   },
 
-  /** The gear and ⌘,: into the settings, or back out to where you were. */
+  /** ⌘,: the settings window, or away with it. */
   toggleSettings(): void {
-    if (fields.section() === 'settings') app.go({ section: fields.lastSection() })
+    if (fields.showSettings()) fields.set({ showSettings: false })
     else app.openSettings()
   },
 
