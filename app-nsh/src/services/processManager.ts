@@ -7,7 +7,7 @@ import * as envFile from '../core/envFile'
 import { emitSoon } from '../core/events'
 import { errorMessage, log, TeaBranchError } from '../core/log'
 import { logs } from '../core/logStore'
-import { KeyedMutex, Mutex } from '../core/mutex'
+import { type Held, KeyedMutex, Mutex } from '../core/mutex'
 import * as ports from '../core/ports'
 import { exitDescription, groupAlive, isCleanExit, signalGroup, sleep, spawnShell } from '../core/spawn'
 import * as database from './database'
@@ -30,14 +30,18 @@ const branchLocks = new KeyedMutex()
 /** Held across "read the ports in use → claim ours", so two starts can't pick the same port. */
 const allocationLock = new Mutex()
 
-export const withBranchLock = <T>(branch: string, body: () => Promise<T>): Promise<T> => branchLocks.run(branch, body)
+/**
+ * The branch's lock around `body`. Nested work on the same branch — a stop inside a delete, a stop
+ * and start inside a restart — passes the `Held` it was given, or it waits on itself forever.
+ */
+export const withBranchLock = <T>(branch: string, body: (held: Held) => Promise<T>, held?: Held): Promise<T> => branchLocks.run(branch, body, held)
 
 /** Say what a start is doing in the branch's own log — a four-minute start must not look hung. */
 const note = (branch: string, message: string): void => logs.append(branch, `[dev] \u001B[36m▸\u001B[0m ${message}`)
 
 // MARK: - Start
 
-export const start = (branch: string): Promise<void> => withBranchLock(branch, () => performStart(branch))
+export const start = (branch: string, held?: Held): Promise<void> => withBranchLock(branch, () => performStart(branch), held)
 
 async function performStart(branch: string): Promise<void> {
   const repo = state.projectPath
@@ -85,13 +89,7 @@ async function performStart(branch: string): Promise<void> {
   }
 }
 
-async function startService(
-  branch: string,
-  worktree: string,
-  backendPort: number,
-  socketPort: number,
-  frontendPort: number,
-): Promise<void> {
+async function startService(branch: string, worktree: string, backendPort: number, socketPort: number, frontendPort: number): Promise<void> {
   note(branch, `Starting ${branch}`)
 
   // A stale Next.js dev lock makes the next boot bail with "is another instance running?".
@@ -350,7 +348,7 @@ function watchdogLog(branch: string, label: string, message: string): void {
  * and by port, and throw if the ports never free up. Stop that returns early and lets reconcile
  * read the dying server as Running again is how Stop used to look like it did nothing.
  */
-export const stop = (branch: string): Promise<void> => withBranchLock(branch, () => performStop(branch))
+export const stop = (branch: string, held?: Held): Promise<void> => withBranchLock(branch, () => performStop(branch), held)
 
 async function performStop(branch: string): Promise<void> {
   // Nothing running, nothing to tear down. This guard keeps Delete safe: reclaiming the ports named

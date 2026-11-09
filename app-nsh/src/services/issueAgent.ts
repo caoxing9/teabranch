@@ -148,7 +148,7 @@ class IssueAgent {
   allRuns = (): Record<string, IssueRun> => this.runs
   isRunning = (recordId: string): boolean => this.handles.has(recordId)
   /** A process alive, or a pipeline step about to start one. */
-  private isBusy = (recordId: string): boolean => {
+  isBusy = (recordId: string): boolean => {
     const run = this.runs[recordId]
     return this.handles.has(recordId) || (!!run && isActivePhase(run.phase))
   }
