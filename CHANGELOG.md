@@ -1,3 +1,10 @@
+# [0.19.0](https://github.com/caoxing9/teabranch/compare/v0.18.0...v0.19.0) (2026-11-09)
+
+
+### Features
+
+* in-app updates, settings as a sheet, live issue state in the header ([#17](https://github.com/caoxing9/teabranch/issues/17)) ([21dd7a5](https://github.com/caoxing9/teabranch/commit/21dd7a5426b5a76b7eef30e68d04f39a642eb4bd))
+
 # [0.18.0](https://github.com/caoxing9/TeaBranch/compare/v0.17.0...v0.18.0) (2026-11-06)
 
 
