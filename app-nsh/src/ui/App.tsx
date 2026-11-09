@@ -13,13 +13,14 @@ import { DeleteDialog } from './features/branches/DeleteDialog'
 import { BrowserHost } from './features/issues/browserHost'
 import { IssueSidebar } from './features/issues/IssueSidebar'
 import { IssuesMain } from './features/issues/IssuesMain'
-import { SettingsMain } from './features/settings/SettingsMain'
-import { SettingsSidebar } from './features/settings/SettingsSidebar'
+import { SettingsDialog } from './features/settings/SettingsDialog'
+import { UpdateDialog } from './features/settings/UpdateDialog'
 import { pref, setPref } from './prefs'
 import { app } from './store/app'
 import { autopilot } from './store/autopilot'
 import { chats } from './store/chats'
 import { issues } from './store/issues'
+import { updates } from './store/updates'
 
 const SIDEBAR_KEY = 'teabranch.sidebarWidth'
 const SIDEBAR_MIN = 220
@@ -30,6 +31,7 @@ export function App() {
   void issues.init()
   void autopilot.init()
   void chats.init()
+  void updates.init()
   // A language change rebuilds every view: the strings are read as the views are made.
   return (
     <Each of={[app.epoch()]} key={(epoch) => String(epoch)}>
@@ -56,40 +58,26 @@ function Shell() {
         >
           <ResizablePanel size={sidebarWidth()} minSize={SIDEBAR_MIN} maxSize={SIDEBAR_MAX} fixed class="border-r border-sidebar-border bg-sidebar">
             <If
-              when={section() === 'settings'}
+              when={section() === 'autopilot'}
               else={
-                <If
-                  when={section() === 'autopilot'}
-                  else={
-                    <If when={section() === 'branches'} else={<IssueSidebar />}>
-                      {() => <BranchSidebar />}
-                    </If>
-                  }
-                >
-                  {() => <AutopilotSidebar />}
+                <If when={section() === 'branches'} else={<IssueSidebar />}>
+                  {() => <BranchSidebar />}
                 </If>
               }
             >
-              <SettingsSidebar />
+              <AutopilotSidebar />
             </If>
           </ResizablePanel>
           <ResizablePanel class="relative min-w-0 flex-1 bg-bg">
             <If
-              when={section() === 'settings'}
+              when={section() === 'autopilot'}
               else={
-                <If
-                  when={section() === 'autopilot'}
-                  else={
-                    <If when={section() === 'branches'} else={<IssuesMain />}>
-                      {() => <BranchDetail />}
-                    </If>
-                  }
-                >
-                  {() => <AutopilotMain />}
+                <If when={section() === 'branches'} else={<IssuesMain />}>
+                  {() => <BranchDetail />}
                 </If>
               }
             >
-              <SettingsMain />
+              <AutopilotMain />
             </If>
             <ErrorToast />
           </ResizablePanel>
@@ -109,6 +97,12 @@ function Dialogs() {
       <If when={app.showCreate()}>
         <CreateWorktreeDialog />
       </If>
+      <If when={app.showSettings()}>
+        <SettingsDialog />
+      </If>
+      <If when={updates.show()}>
+        <UpdateDialog />
+      </If>
       <If when={app.pendingDelete()}>{(branch) => <DeleteDialog branch={branch()} />}</If>
     </>
   )
@@ -123,7 +117,8 @@ function ErrorToast() {
       <View class="absolute inset-x-0 bottom-4 items-center px-4">
         <View class="max-w-xl flex-row items-start gap-2.5 rounded-xl border border-err/30 bg-panel px-3.5 py-2.5 shadow-xl">
           <Icon name="alert-triangle" size={16} tint="err" class="mt-0.5" />
-          <Text class="flex-1 text-[13px] text-fg" style={{ userSelect: 'text' }}>
+          {/* Not `flex-1`: the box takes its width from its content, and a growing child contributes none — the text came out blank. */}
+          <Text class="min-w-0 shrink text-[13px] text-fg" style={{ userSelect: 'text' }}>
             {message()}
           </Text>
           <IconButton label={t('关闭')} onPress={dismiss}>

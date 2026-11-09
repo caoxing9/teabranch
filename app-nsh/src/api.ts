@@ -38,9 +38,17 @@ import * as terminal from './services/terminal'
 import * as worktrees from './services/worktree'
 import { removeWorktree } from './services/worktreeCleanup'
 import * as browser from './services/browser'
+import { updater } from './services/updater'
 
 let categories = loadCategories()
 let teableUser: TeableUser | null = null
+
+/**
+ * One realm: a service's own object handed over here is the object the service keeps mutating,
+ * and a store that is given the same reference again sees no change. What the UI keeps in a
+ * signal is a copy.
+ */
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
 async function gitIn(cwd: string, args: string[]): Promise<string> {
   const result = await gitCommand(args, cwd)
@@ -260,7 +268,8 @@ const handlers: Api = {
   },
   teableDeviceCancel: async () => teableAuth.cancelDeviceLogin(),
   teableOAuthReady: async () => !!teableAuth.clientIdFor(loadTeableConfig()),
-  issueRuns: async () => issueAgent.allRuns(),
+  // The runs change in place as agents work; the UI re-renders on `issueRunsChanged` only if it gets a new object.
+  issueRuns: async () => clone(issueAgent.allRuns()),
   queueState: async () => issueAgent.queueState(),
   // Copies: the UI appends what `transcript` events bring, so it must not hold the service's own list.
   transcript: async (recordId) => [...issueAgent.transcript(recordId)],
@@ -288,6 +297,9 @@ const handlers: Api = {
   terminalResize: async (id, cols, rows) => ptyHost.resize(id, cols, rows),
   terminalKill: async (id) => ptyHost.kill(id),
   fixAnyway: async (issue) => issueAgent.fixAnyway(issue),
+  updateState: async () => updater.state(),
+  checkUpdate: () => updater.check(),
+  installUpdate: () => updater.install(),
   createIssueChat: async (issue) => {
     const workspace = await issueAgent.issueWorktree(issue, (branch, progress) => emit('worktreeProgress', { branch, progress }))
     emitSoon('branchesChanged')

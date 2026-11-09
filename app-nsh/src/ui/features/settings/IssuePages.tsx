@@ -43,7 +43,7 @@ export function IssueTeablePage() {
     <If when={issues.config()}>
       {(config) => (
         <>
-          <PageHeader title={t('Teable 表')} subtitle={t('读 issue 表，修完把 PR 链接写回去。')} />
+          <PageHeader compact title={t('Teable 表')} subtitle={t('读 issue 表，修完把 PR 链接写回去。')} />
           <PageBody>
             <Card title={t('表')}>
               <Row label={t('表或视图')} stacked>
@@ -101,7 +101,7 @@ export function IssueFixPage() {
     <If when={issues.config()}>
       {(config) => (
         <>
-          <PageHeader title={t('修复')} />
+          <PageHeader compact title={t('修复')} />
           <PageBody>
             <Card title={t('修复前验证')}>
               <SwitchRow
@@ -145,7 +145,7 @@ export function IssueReviewPage() {
     <If when={issues.config()}>
       {(config) => (
         <>
-          <PageHeader title="Review" />
+          <PageHeader compact title="Review" />
           <PageBody>
             <Card title="Review">
               <SwitchRow label={t('提 PR 后自动 review')} checked={config().autoReview} onChange={(autoReview) => update({ autoReview })} />
@@ -221,6 +221,7 @@ export function IssuePromptPage() {
   return (
     <>
       <PageHeader
+        compact
         title="Prompt"
         subtitle={
           <Text class="mt-1 max-w-2xl text-[12.5px] text-fg-2">

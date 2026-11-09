@@ -8,10 +8,13 @@ import { cn } from '../../lib/utils'
 
 /** The pieces autopilot's pages are built from: a header, cards of settings, rows inside them. */
 
-/** The page's title in the display serif, with its controls on the right; the strip above it drags the window. */
-export function PageHeader(props: { title: JSX.Element; subtitle?: JSX.Element; actions?: JSX.Element }) {
+/**
+ * The page's title in the display serif, with its controls on the right; the strip above it drags
+ * the window. `compact` for a page inside a window of its own (the settings): no strip, no drag.
+ */
+export function PageHeader(props: { title: JSX.Element; subtitle?: JSX.Element; actions?: JSX.Element; compact?: boolean }) {
   return (
-    <View class="shrink-0 flex-row items-end gap-4 px-8 pt-[46px] pb-3" desktop={{ windowDrag: true }}>
+    <View class={cn('shrink-0 flex-row items-end gap-4 px-8 pb-3', props.compact ? 'pt-7' : 'pt-[46px]')} desktop={{ windowDrag: !props.compact }}>
       <View class="min-w-0 flex-1">
         {typeof props.title === 'string' ? <Text class="font-display text-[24px] font-medium tracking-tight text-fg">{props.title}</Text> : props.title}
         <If when={props.subtitle}>

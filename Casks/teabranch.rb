@@ -7,7 +7,7 @@
 #     brew trust --cask caoxing9/teabranch/teabranch
 #     brew install --cask teabranch
 #
-# About the `postflight` below, because it disables a real protection and should not be silent:
+# About the `postflight_steps` below, because it disables a real protection and should not be silent:
 #
 # This build is ad-hoc signed, not notarized — notarizing needs a paid Developer ID. The DMG
 # arrives quarantined (macOS marks it as downloaded), the app copied out of it inherits that, and
@@ -26,8 +26,7 @@ cask "teabranch" do
   version "0.18.0"
   sha256 "e91739973cd3066c98e3a2f57ea77d33846b1cd9dd37e77b31ed383ce52b0203"
 
-  url "https://github.com/caoxing9/TeaBranch/releases/download/v#{version}/TeaBranch-#{version}-arm64.dmg",
-      verified: "github.com/caoxing9/TeaBranch/"
+  url "https://github.com/caoxing9/TeaBranch/releases/download/v#{version}/TeaBranch-#{version}-arm64.dmg"
   name "TeaBranch"
   desc "Run Teable branches in parallel worktrees and fix issues with local agents"
   homepage "https://github.com/caoxing9/TeaBranch"
@@ -44,10 +43,11 @@ cask "teabranch" do
 
   app "TeaBranch.app"
 
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/TeaBranch.app"],
-                   sudo: false
+  # The declarative form Homebrew 7 asks for; `{{appdir}}` is expanded in the arguments.
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args:         ["-dr", "com.apple.quarantine", "{{appdir}}/TeaBranch.app"],
+        must_succeed: false
   end
 
   uninstall quit: "com.teabranch.dev"

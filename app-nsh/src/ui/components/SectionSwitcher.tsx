@@ -4,9 +4,9 @@ import { t } from '../../shared/i18n'
 import { type Section, app } from '../store/app'
 import { autopilot } from '../store/autopilot'
 import { issues } from '../store/issues'
+import { updates } from '../store/updates'
 import { Icon } from './Icon'
-import { cn } from '../lib/utils'
-import { IconButton, StatusDot, TabBar } from './kit'
+import { Button, IconButton, StatusDot, TabBar } from './kit'
 
 /** Issues ⇄ Branches ⇄ Autopilot, under the title bar of every sidebar so it never moves — and the settings gear beside it. */
 export function SectionSwitcher() {
@@ -17,7 +17,6 @@ export function SectionSwitcher() {
   const enabled = () => !!autopilot.status()?.enabled
   const thinking = () => autopilot.status()?.router === 'thinking'
   const selected = () => app.section() === 'autopilot'
-  const inSettings = () => app.section() === 'settings'
   return (
     <TabBar<Section>
       value={app.section() === 'queue' ? 'autopilot' : app.section()}
@@ -41,9 +40,23 @@ export function SectionSwitcher() {
         },
       ]}
       trailing={
-        <IconButton label={t('设置')} class={cn('shrink-0', inSettings() && 'bg-card shadow-xs')} onPress={() => app.toggleSettings()}>
-          <Icon name="settings" size={15} tint={inSettings() ? 'fg' : 'fg-2'} />
-        </IconButton>
+        <View class="shrink-0 flex-row items-center gap-1">
+          {/* A new version on its way or waiting: the one place it shows outside the settings. */}
+          <If when={updates.pending()}>
+            <Button
+              tone="accent"
+              class="h-6 px-2"
+              icon={<Icon name="arrow-up" size={12} tint="#ffffff" />}
+              title={t('有新版本')}
+              onPress={() => updates.open()}
+            >
+              {t('更新')}
+            </Button>
+          </If>
+          <IconButton label={t('设置')} class="shrink-0" onPress={() => app.openSettings()}>
+            <Icon name="settings" size={15} tint="fg-2" />
+          </IconButton>
+        </View>
       }
     />
   )

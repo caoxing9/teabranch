@@ -1,5 +1,5 @@
-// The settings as a section of the window: the gear opens them with their own sidebar, each
-// entry is a page, and the gear leads back out. Run with `nsh test --target macos e2e/settings.test.tsx`
+// The settings window: the gear opens a sheet with the pages down its left side, each entry is a
+// page, and the close button takes it away. Run with `nsh test --target macos e2e/settings.test.tsx`
 // for the screenshots.
 import { expect, open, test } from 'nsh/test'
 
@@ -15,7 +15,8 @@ test('opens the settings from the gear and walks their pages', async () => {
   await app.waitFor('text:主题', { timeout: 10_000 })
   await app.wait(600)
   await app.screenshot(`${SHOTS}/e2e-settings-1.png`).catch(() => undefined)
-  for (const text of ['通用', '外观', '仓库', '终端', '模型', 'Teable 表', '修复', 'Prompt', '托管', '语言 / Language']) expect(app.texts()).toContain(text)
+  for (const text of ['通用', '外观', '仓库', '终端', '关于', '模型', 'Teable 表', '修复', 'Prompt', '托管', '语言 / Language'])
+    expect(app.texts()).toContain(text)
   await app.press('text:深色')
   await app.wait(300)
   await app.press('text:跟随系统 >> nth=0')
@@ -30,6 +31,13 @@ test('opens the settings from the gear and walks their pages', async () => {
   await app.waitUntil(() => app.texts().some((text) => /^(Otty|System Default \(Terminal\)|Warp|iTerm|Ghostty|Kero|Alacritty|Kitty|Hyper)$/.test(text)), {
     timeout: 10_000,
   })
+
+  // About: the version and the update check; the dev host says it won't check by itself.
+  await app.press('text:关于 >> nth=0')
+  await app.waitFor('text:检查更新', { timeout: 10_000 })
+  expect(app.texts().some((text) => text.startsWith('版本 ') || text === '开发版')).toBe(true)
+  await app.wait(400)
+  await app.screenshot(`${SHOTS}/e2e-settings-about.png`).catch(() => undefined)
 
   await app.press('text:模型 >> nth=0')
   await app.waitFor('text:兜底', { timeout: 10_000 })
@@ -54,9 +62,10 @@ test('opens the settings from the gear and walks their pages', async () => {
   await app.wait(600)
   await app.screenshot(`${SHOTS}/e2e-settings-4.png`).catch(() => undefined)
 
-  // The gear again: back to the branches.
-  await app.press('label:设置')
+  // Closed, the branches are where they were.
+  await app.press('label:关闭')
   await app.wait(400)
   expect(app.shows('text:恢复默认')).toBe(false)
+  expect(app.shows('text:通用')).toBe(false)
   expect(app.texts()).toContain('分支')
 })

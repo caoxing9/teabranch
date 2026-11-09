@@ -346,4 +346,9 @@ impl Shell {
     pub fn env(name: String) -> Option<String> {
         login_environment().get(&name).cloned()
     }
+
+    /// The running executable (`…/TeaBranch.app/Contents/MacOS/TeaBranch` when packaged), or "".
+    pub fn exe() -> String {
+        std::env::current_exe().map(|path| path.to_string_lossy().into_owned()).unwrap_or_default()
+    }
 }
