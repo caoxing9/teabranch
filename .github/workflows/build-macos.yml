@@ -50,6 +50,7 @@ jobs:
           shared-key: check
           workspaces: app-nsh/native
           cache-directories: app-nsh/target
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install nsh
         run: |
@@ -107,6 +108,7 @@ jobs:
           shared-key: package
           workspaces: app-nsh/native
           cache-directories: app-nsh/target
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install nsh
         run: |
