@@ -23,8 +23,8 @@
 #
 # `version` and `sha256` are rewritten by the release workflow; don't hand-edit them.
 cask "teabranch" do
-  version "0.19.0"
-  sha256 "b9564625bb77bda9372352811e458e0ce99ac7fc5f54c8a709f884626ba96c1b"
+  version "0.20.0"
+  sha256 "a43cd9100d3910833cbfaec44676842ec3a647c8375ff295b5f8320a77f6017e"
 
   url "https://github.com/caoxing9/TeaBranch/releases/download/v#{version}/TeaBranch-#{version}-arm64.dmg"
   name "TeaBranch"
