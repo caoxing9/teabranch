@@ -142,7 +142,7 @@ nsh package --target macos      # → .nsh/out/TeaBranch.app
 - **界面**（`src/ui`）通过一个有类型的对象（`src/api.ts`）调用服务层；TSX 够不到的东西由 Rust crate（`native/`）提供。
 - **文案**：中文是源语言，英文翻译在 `src/shared/i18n/en/`。测试会检查有没有漏翻。
 
-目录结构和怎样在已安装的 app 旁边跑开发版，见 [`app-nsh/README.md`](app-nsh/README.md)。之前的 Electron 版本在 [`app/`](app)，作为还没移植完的部分的参照留着；更早的原生版本在 [`swift/`](swift)。
+目录结构和怎样在已安装的 app 旁边跑开发版，见 [`app-nsh/README.md`](app-nsh/README.md)。
 
 ## worktree 是怎么隔离的
 

@@ -48,6 +48,4 @@ repository's own branch), which is why CI runs the unit tests and `App.test.tsx`
 
 - Chinese is the source language for UI text; English lives in `src/shared/i18n/en/`, and a test fails on any `t()` key
   without an entry.
-- Formatting: `../app/node_modules/.bin/oxfmt <files>` with the `.oxfmtrc.json` here.
-- `app/` beside this directory is the previous Electron build, kept as the reference for what is still being ported (the
-  terminal's VT grid, tray and notifications, the browser screenshot, the login item).
+- Formatting: `npx -y oxfmt@0.72.0 <files>` from this directory, with the `.oxfmtrc.json` here.

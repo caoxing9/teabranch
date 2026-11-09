@@ -133,8 +133,6 @@ CI typechecks, runs the unit and smoke tests and packages the app on every pull 
 
 Stack: nsh (Rust core, AppKit host, QuickJS for TSX), TypeScript, Tailwind classes. The services (`src/core`, `src/services`) own git, processes, ports, agents, Teable, Feishu and GitHub; the screens (`src/ui`) call them through one typed object (`src/api.ts`); the Rust crate (`native/`) provides what TSX can't reach. Chinese is the source language for UI text, with English in `src/shared/i18n/en/`; a test catches missing translations. [`app-nsh/README.md`](app-nsh/README.md) has the layout and how to run a development build beside the installed app.
 
-The previous Electron build is in [`app/`](app), kept as the reference for what is still being ported; the earlier native build is in [`swift/`](swift).
-
 ## How worktree isolation works
 
 Creating a worktree:
