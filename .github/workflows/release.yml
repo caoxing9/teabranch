@@ -44,6 +44,9 @@ jobs:
     needs: release
     if: needs.release.outputs.published == 'true'
     runs-on: macos-latest
+    env:
+      # As in CI, so the cache the two share holds the same artifacts.
+      CARGO_INCREMENTAL: '0'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -56,9 +59,11 @@ jobs:
       - name: Rust toolchain
         run: rustup update stable && rustup default stable
 
+      # The same cache as CI's `package` job, which is what fills it on main.
       - name: Cargo cache
         uses: Swatinem/rust-cache@v2
         with:
+          shared-key: package
           workspaces: app-nsh/native
           cache-directories: app-nsh/target
 

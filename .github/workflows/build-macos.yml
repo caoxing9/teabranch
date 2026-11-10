@@ -3,15 +3,36 @@ name: CI
 on:
   pull_request:
     branches: [main]
+  # Main as well: a pull request can restore caches saved on main, never one saved by another pull
+  # request, so the runs here on main are what keep the Cargo caches below warm.
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
+# A newer push to the same branch makes the run in progress moot.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned to the version the crate depends on (native/Cargo.toml): the two move together.
+  NSH_VERSION: v0.4.0
+  # Incremental artifacts only pay off in an edit loop; here they would just fill the cache.
+  CARGO_INCREMENTAL: '0'
+
+# The nsh app, on macOS because the app is macOS-only and its host is AppKit. Two jobs side by
+# side: the debug builds (`nsh check`, the headless tests) and the release build of `nsh package`
+# share nothing but the toolchain, so each has a runner and a Cargo cache of its own. The caches
+# are keyed by job (`shared-key`), not by workflow, so the release workflow's build restores the
+# same one as `package` here; only main saves them, since a pull request's save would be visible
+# to nobody but itself.
 jobs:
-  # The nsh app: its Rust crate and TSX types, the headless tests, and a packaged .app the way the
-  # release builds it. macOS, because the app is macOS-only and its host is AppKit.
-  app:
+  check:
+    name: Typecheck and tests
     runs-on: macos-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: app-nsh
@@ -26,13 +47,14 @@ jobs:
       - name: Cargo cache
         uses: Swatinem/rust-cache@v2
         with:
+          shared-key: check
           workspaces: app-nsh/native
           cache-directories: app-nsh/target
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      # Pinned to the version the crate depends on (native/Cargo.toml): the two move together.
       - name: Install nsh
         run: |
-          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION=v0.4.0 sh
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION="$NSH_VERSION" sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Typecheck
@@ -49,14 +71,50 @@ jobs:
           printf '{"projectPath":"%s","basePort":3001,"defaultStartCommand":"npm run dev","agentCommand":"claude","language":"zh"}\n' "$GITHUB_WORKSPACE" > "$dir/settings.json"
 
       # `nsh test <dir>` wants the app's directory, which would take the e2e tests along: the unit
-      # tests are named one by one.
+      # tests are named one by one, three at a time — each opens the app on a host of its own, and
+      # the runner has the cores. Every file's output is printed afterwards, in order.
       - name: Unit tests
         run: |
           set -euo pipefail
-          find src -name '*.test.ts' -o -name '*.test.tsx' | sort | while read -r file; do nsh test "$file"; done
+          files=$(find src -name '*.test.ts' -o -name '*.test.tsx' | sort)
+          echo "$files" | xargs -P 3 -I{} sh -c 'nsh test "{}" > "{}.log" 2>&1; echo $? > "{}.status"'
+          status=0
+          for file in $files; do
+            cat "$file.log"
+            [ "$(cat "$file.status")" = 0 ] || status=1
+          done
+          exit $status
 
       - name: Smoke test
         run: nsh test App.test.tsx
 
+  package:
+    name: Package
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: app-nsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rust toolchain
+        run: rustup update stable && rustup default stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: package
+          workspaces: app-nsh/native
+          cache-directories: app-nsh/target
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Install nsh
+        run: |
+          curl -fsSL https://nsh.dev/install.sh | NSH_VERSION="$NSH_VERSION" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # The way the release builds it.
       - name: Package
         run: nsh package --target macos -o dist
